@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Directory Traversal Attack Demo - Attack Mitigation Tool{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.25.0/themes/prism.css">
+<style>
+    .code-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    .file-content {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Directory Traversal Attack Demo</h2>
+    </div>
+    <div class="card-body">
+        <div class="alert {% if secure_mode %}alert-success{% else %}alert-danger{% endif %} mb-4">
+            <h4 class="alert-heading">Security Mode: {% if secure_mode %}Secure{% else %}Vulnerable{% endif %}</h4>
+            <p>
+                {% if secure_mode %}
+                Directory Traversal Protection is <strong>enabled</strong>. Path validation and normalization are being used.
+                {% else %}
+                Directory Traversal Protection is <strong>disabled</strong>. The application is vulnerable to directory traversal attacks.
+                {% endif %}
+            </p>
+            <form method="post" action="{{ url_for('toggle_security') }}" class="mt-2">
+                <button type="submit" class="btn {% if secure_mode %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                    Switch to {% if secure_mode %}Vulnerable{% else %}Secure{% endif %} Mode
+                </button>
+            </form>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h3>What is Directory Traversal?</h3>
+                <p>
+                    Directory Traversal (also known as Path Traversal) is an attack that allows attackers to access files and
+                    directories stored outside the web root folder. By manipulating variables that reference files with
+                    "dot-dot-slash (../)" sequences and variations, attackers can access arbitrary files on the server.
+                </p>
+                <p>
+                    Directory traversal vulnerabilities can allow attackers to:
+                </p>
+                <ul>
+                    <li>Read sensitive system files (like /etc/passwd on Unix systems)</li>
+                    <li>Access configuration files containing credentials</li>
+                    <li>Read source code or data files containing sensitive information</li>
+                    <li>In some cases, write to files on the server</li>
+                </ul>
+                <p>
+                    This demo shows how directory traversal can be used to access files outside the intended directory
+                    when file path validation is not properly implemented.
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>File Viewer</h3>
+                <div class="card mb-4">
+                    <div class="card-header">View a file</div>
+                    <div class="card-body">
+                        <form method="get" action="{{ url_for('directory_traversal_demo') }}">
+                            <div class="mb-3">
+                                <label for="filename" class="form-label">Filename:</label>
+                                <input type="text" class="form-control" id="filename" name="filename" value="{{ filename|default('') }}" required>
+                                <div class="form-text">
+                                    Available files: <code>welcome.txt</code>, <code>notes.txt</code>
+                                    <br>
+                                    {% if secure_mode %}
+                                    Path validation is active. Directory traversal will not work.
+                                    {% else %}
+                                    Try directory traversal with: <code>../private/secret.txt</code> or <code>../../app.py</code>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">View File</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if content %}
+                <h4>File Content:</h4>
+                <div class="file-content">{{ content }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h3>Code Comparison</h3>
+                <ul class="nav nav-tabs" id="codeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="vulnerable-tab" data-bs-toggle="tab" data-bs-target="#vulnerable" type="button" role="tab" aria-controls="vulnerable" aria-selected="true">Vulnerable Code</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="secure-tab" data-bs-toggle="tab" data-bs-target="#secure" type="button" role="tab" aria-controls="secure" aria-selected="false">Secure Code</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="codeTabsContent">
+                    <div class="tab-pane fade show active" id="vulnerable" role="tabpanel" aria-labelledby="vulnerable-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ vulnerable_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-danger">
+                            <h5>Vulnerability Explanation:</h5>
+                            <p>The vulnerable code directly joins user input to a base directory path without validation. This allows attackers to use "../" sequences to navigate to parent directories and access files outside the intended directory.</p>
+                            <p>For example, entering <code>../private/secret.txt</code> will access a file in the private directory that should not be accessible.</p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="secure" role="tabpanel" aria-labelledby="secure-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ secure_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-success">
+                            <h5>Security Fix:</h5>
+                            <p>The secure code implements several security measures:</p>
+                            <ol>
+                                <li>Validating the filename to reject paths containing "../" sequences</li>
+                                <li>Normalizing the path to resolve any directory traversal attempts</li>
+                                <li>Verifying that the final path still starts with the base directory</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', function() {
+        Prism.highlightAll();
+    });
+</script>
+{% endblock %}

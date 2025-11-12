@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}MITM Attack Demo - Attack Mitigation Tool{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.25.0/themes/prism.css">
+<style>
+    .code-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    .request-response {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        font-family: monospace;
+        margin-bottom: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .network-diagram {
+        text-align: center;
+        margin: 20px 0;
+    }
+    .diagram-box {
+        display: inline-block;
+        border: 2px solid #007bff;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 0 10px;
+        min-width: 100px;
+    }
+    .diagram-arrow {
+        display: inline-block;
+        font-size: 24px;
+        margin: 0 5px;
+        color: #6c757d;
+    }
+    .diagram-attacker {
+        border-color: #dc3545;
+        background-color: #f8d7da;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Man-in-the-Middle (MITM) Attack Demo</h2>
+    </div>
+    <div class="card-body">
+        <div class="alert {% if secure_mode %}alert-success{% else %}alert-danger{% endif %} mb-4">
+            <h4 class="alert-heading">Security Mode: {% if secure_mode %}Secure{% else %}Vulnerable{% endif %}</h4>
+            <p>
+                {% if secure_mode %}
+                MITM Protection is <strong>enabled</strong>. HTTPS enforcement and secure headers are being used.
+                {% else %}
+                MITM Protection is <strong>disabled</strong>. The application is vulnerable to MITM attacks.
+                {% endif %}
+            </p>
+            <form method="post" action="{{ url_for('toggle_security') }}" class="mt-2">
+                <button type="submit" class="btn {% if secure_mode %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                    Switch to {% if secure_mode %}Vulnerable{% else %}Secure{% endif %} Mode
+                </button>
+            </form>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h3>What is a Man-in-the-Middle (MITM) Attack?</h3>
+                <p>
+                    A Man-in-the-Middle (MITM) attack occurs when an attacker secretly relays and possibly alters the 
+                    communication between two parties who believe they are directly communicating with each other.
+                </p>
+                <p>
+                    In a MITM attack, the attacker can:
+                </p>
+                <ul>
+                    <li>Intercept sensitive information (passwords, credit card details, etc.)</li>
+                    <li>Modify the data being transmitted</li>
+                    <li>Impersonate either party to elicit additional information</li>
+                    <li>Inject malicious content into the communication</li>
+                </ul>
+                <p>
+                    This demo simulates a payment processing scenario where sensitive credit card information is transmitted.
+                    It demonstrates how data can be intercepted in an insecure implementation versus a secure one.
+                </p>
+                
+                <div class="network-diagram">
+                    <div class="diagram-box">User</div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box diagram-attacker">Attacker</div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box">Server</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Payment Processing</h3>
+                <div class="card mb-4">
+                    <div class="card-header">Make a payment</div>
+                    <div class="card-body">
+                        <form id="payment-form">
+                            <div class="mb-3">
+                                <label for="credit-card" class="form-label">Credit Card Number:</label>
+                                <input type="text" class="form-control" id="credit-card" value="4111-1111-1111-1111" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount:</label>
+                                <input type="number" class="form-control" id="amount" value="99.99" step="0.01" min="1" required>
+                            </div>
+                            <button type="button" id="process-payment" class="btn btn-primary">Process Payment</button>
+                        </form>
+                    </div>
+                </div>
+
+                <h4>Request/Response:</h4>
+                <div id="request-container" class="request-response">
+                    <p><em>Request will appear here after submission...</em></p>
+                </div>
+                <div id="response-container" class="request-response">
+                    <p><em>Response will appear here after submission...</em></p>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h3>Code Comparison</h3>
+                <ul class="nav nav-tabs" id="codeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="vulnerable-tab" data-bs-toggle="tab" data-bs-target="#vulnerable" type="button" role="tab" aria-controls="vulnerable" aria-selected="true">Vulnerable Code</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="secure-tab" data-bs-toggle="tab" data-bs-target="#secure" type="button" role="tab" aria-controls="secure" aria-selected="false">Secure Code</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="codeTabsContent">
+                    <div class="tab-pane fade show active" id="vulnerable" role="tabpanel" aria-labelledby="vulnerable-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ vulnerable_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-danger">
+                            <h5>Vulnerability Explanation:</h5>
+                            <p>The vulnerable code has several issues:</p>
+                            <ol>
+                                <li>It doesn't enforce HTTPS, allowing data to be transmitted in plaintext</li>
+                                <li>Sensitive data (credit card numbers) are included in responses</li>
+                                <li>No HTTP Strict Transport Security (HSTS) headers to prevent downgrade attacks</li>
+                            </ol>
+                            <p>An attacker with network access could intercept this traffic and steal sensitive information.</p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="secure" role="tabpanel" aria-labelledby="secure-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ secure_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-success">
+                            <h5>Security Fix:</h5>
+                            <p>The secure code implements several protections:</p>
+                            <ol>
+                                <li>Forces HTTPS to encrypt all traffic</li>
+                                <li>Removes sensitive data from responses</li>
+                                <li>Adds HSTS headers to prevent protocol downgrade attacks</li>
+                            </ol>
+                            <p>These measures ensure that even if an attacker could intercept the traffic, they would only see encrypted data.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', function() {
+        Prism.highlightAll();
+        
+        // Handle payment processing
+        document.getElementById('process-payment').addEventListener('click', function() {
+            const creditCard = document.getElementById('credit-card').value;
+            const amount = document.getElementById('amount').value;
+            
+            // Display request
+            const requestContainer = document.getElementById('request-container');
+            const requestData = {
+                credit_card: creditCard,
+                amount: amount
+            };
+            requestContainer.innerHTML = '<strong>Request:</strong><br>' + JSON.stringify(requestData, null, 2);
+            
+            // Make the AJAX request
+            fetch('{{ url_for("mitm_checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'credit_card': creditCard,
+                    'amount': amount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display response
+                const responseContainer = document.getElementById('response-container');
+                responseContainer.innerHTML = '<strong>Response:</strong><br>' + JSON.stringify(data, null, 2);
+                
+                // Show security warning if credit card is exposed
+                if (data.credit_card) {
+                    responseContainer.innerHTML += '<div class="alert alert-danger mt-2"><strong>Security Issue:</strong> Credit card number exposed in response!</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>
+{% endblock %}

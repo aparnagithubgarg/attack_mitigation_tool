@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}DoS Attack Demo - Attack Mitigation Tool{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.25.0/themes/prism.css">
+<style>
+    .code-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    .result-container {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        font-family: monospace;
+        margin-bottom: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    #loading {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Denial of Service (DoS) Attack Demo</h2>
+    </div>
+    <div class="card-body">
+        <div class="alert {% if secure_mode %}alert-success{% else %}alert-danger{% endif %} mb-4">
+            <h4 class="alert-heading">Security Mode: {% if secure_mode %}Secure{% else %}Vulnerable{% endif %}</h4>
+            <p>
+                {% if secure_mode %}
+                DoS Protection is <strong>enabled</strong>. Rate limiting and input validation are being used.
+                {% else %}
+                DoS Protection is <strong>disabled</strong>. The application is vulnerable to DoS attacks.
+                {% endif %}
+            </p>
+            <form method="post" action="{{ url_for('toggle_security') }}" class="mt-2">
+                <button type="submit" class="btn {% if secure_mode %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                    Switch to {% if secure_mode %}Vulnerable{% else %}Secure{% endif %} Mode
+                </button>
+            </form>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h3>What is a Denial of Service (DoS) Attack?</h3>
+                <p>
+                    A Denial of Service (DoS) attack is an attempt to make a system or network resource unavailable to its intended users
+                    by temporarily or indefinitely disrupting the services of a host connected to the Internet.
+                </p>
+                <p>
+                    DoS attacks can take many forms, including:
+                </p>
+                <ul>
+                    <li>Flooding a network with traffic to prevent legitimate users from accessing services</li>
+                    <li>Disrupting connections between two machines to prevent access to a service</li>
+                    <li>Preventing a particular individual from accessing a service</li>
+                    <li>Exploiting resource-intensive operations to overload a server (e.g., ReDoS - Regular Expression DoS)</li>
+                </ul>
+                <p>
+                    This demo demonstrates a Regular Expression Denial of Service (ReDoS) attack, where a malicious regex pattern
+                    can cause excessive CPU usage and make the application unresponsive.
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Regular Expression Tester</h3>
+                <div class="card mb-4">
+                    <div class="card-header">Test a regular expression</div>
+                    <div class="card-body">
+                        <form id="regex-form">
+                            <div class="mb-3">
+                                <label for="pattern" class="form-label">Regex Pattern:</label>
+                                <input type="text" class="form-control" id="pattern" value="^(a+)+$" required>
+                                <div class="form-text">
+                                    {% if secure_mode %}
+                                    Input is validated for potentially malicious patterns.
+                                    {% else %}
+                                    Try a malicious pattern like <code>^(a+)+$</code> with text like <code>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX</code>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="text" class="form-label">Text to Match:</label>
+                                <textarea class="form-control" id="text" rows="3" required>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaX</textarea>
+                            </div>
+                            <button type="button" id="test-regex" class="btn btn-primary">Test Regex</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Processing... This may take some time with malicious patterns.</p>
+                </div>
+
+                <div id="result-container" class="result-container">
+                    <p><em>Results will appear here after submission...</em></p>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h3>Code Comparison</h3>
+                <ul class="nav nav-tabs" id="codeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="vulnerable-tab" data-bs-toggle="tab" data-bs-target="#vulnerable" type="button" role="tab" aria-controls="vulnerable" aria-selected="true">Vulnerable Code</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="secure-tab" data-bs-toggle="tab" data-bs-target="#secure" type="button" role="tab" aria-controls="secure" aria-selected="false">Secure Code</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="codeTabsContent">
+                    <div class="tab-pane fade show active" id="vulnerable" role="tabpanel" aria-labelledby="vulnerable-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ vulnerable_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-danger">
+                            <h5>Vulnerability Explanation:</h5>
+                            <p>The vulnerable code has several issues:</p>
+                            <ol>
+                                <li>No rate limiting to prevent excessive requests</li>
+                                <li>No validation of regex patterns for potential ReDoS vulnerabilities</li>
+                                <li>No timeout or maximum execution time for regex processing</li>
+                            </ol>
+                            <p>Certain regex patterns like <code>^(a+)+$</code> can cause exponential backtracking when matching fails, resulting in a Denial of Service.</p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="secure" role="tabpanel" aria-labelledby="secure-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ secure_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-success">
+                            <h5>Security Fix:</h5>
+                            <p>The secure code implements several protections:</p>
+                            <ol>
+                                <li>Rate limiting to prevent excessive requests from a single client</li>
+                                <li>Validation of regex patterns to detect potentially malicious patterns</li>
+                                <li>Processing timeout to prevent excessive CPU usage</li>
+                            </ol>
+                            <p>These measures prevent an attacker from consuming server resources and causing a Denial of Service.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', function() {
+        Prism.highlightAll();
+        
+        // Handle regex testing
+        document.getElementById('test-regex').addEventListener('click', function() {
+            const pattern = document.getElementById('pattern').value;
+            const text = document.getElementById('text').value;
+            const resultContainer = document.getElementById('result-container');
+            const loading = document.getElementById('loading');
+            
+            // Show loading spinner
+            loading.style.display = 'block';
+            resultContainer.innerHTML = '<p><em>Processing...</em></p>';
+            
+            // Make the AJAX request
+            fetch('{{ url_for("dos_regex") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'pattern': pattern,
+                    'text': text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading spinner
+                loading.style.display = 'none';
+                
+                // Display results
+                if (data.error) {
+                    resultContainer.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+                } else {
+                    let output = '<strong>Matches found:</strong><br>';
+                    if (data.matches && data.matches.length > 0) {
+                        output += '<ul>';
+                        data.matches.forEach(match => {
+                            output += '<li>' + match + '</li>';
+                        });
+                        output += '</ul>';
+                    } else {
+                        output += '<p>No matches found.</p>';
+                    }
+                    resultContainer.innerHTML = output;
+                }
+            })
+            .catch(error => {
+                // Hide loading spinner
+                loading.style.display = 'none';
+                
+                // Show error
+                resultContainer.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>
+{% endblock %}

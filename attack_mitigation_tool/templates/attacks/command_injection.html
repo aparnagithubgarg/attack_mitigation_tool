@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Command Injection Attack Demo - Attack Mitigation Tool{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.25.0/themes/prism.css">
+<style>
+    .code-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    .output-container {
+        background-color: #000;
+        color: #fff;
+        font-family: monospace;
+        padding: 15px;
+        border-radius: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Command Injection Attack Demo</h2>
+    </div>
+    <div class="card-body">
+        <div class="alert {% if secure_mode %}alert-success{% else %}alert-danger{% endif %} mb-4">
+            <h4 class="alert-heading">Security Mode: {% if secure_mode %}Secure{% else %}Vulnerable{% endif %}</h4>
+            <p>
+                {% if secure_mode %}
+                Command Injection Protection is <strong>enabled</strong>. Input validation and safe execution methods are being used.
+                {% else %}
+                Command Injection Protection is <strong>disabled</strong>. The application is vulnerable to command injection attacks.
+                {% endif %}
+            </p>
+            <form method="post" action="{{ url_for('toggle_security') }}" class="mt-2">
+                <button type="submit" class="btn {% if secure_mode %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                    Switch to {% if secure_mode %}Vulnerable{% else %}Secure{% endif %} Mode
+                </button>
+            </form>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h3>What is Command Injection?</h3>
+                <p>
+                    Command Injection is an attack where an attacker can execute arbitrary operating system commands on 
+                    the server running the vulnerable application. This happens when an application passes unsanitized 
+                    user input to a system shell for execution.
+                </p>
+                <p>
+                    Command injection vulnerabilities can allow attackers to:
+                </p>
+                <ul>
+                    <li>Access sensitive information on the server</li>
+                    <li>Modify server files and data</li>
+                    <li>Gain unauthorized access to systems</li>
+                    <li>Launch further attacks from the compromised server</li>
+                </ul>
+                <p>
+                    This demo shows how command injection can be used to execute arbitrary OS commands when user input 
+                    is directly passed to a shell without proper validation or sanitization.
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Ping Tool</h3>
+                <div class="card mb-4">
+                    <div class="card-header">Ping a host</div>
+                    <div class="card-body">
+                        <form method="post" action="{{ url_for('command_injection_demo') }}">
+                            <div class="mb-3">
+                                <label for="host" class="form-label">Hostname or IP:</label>
+                                <input type="text" class="form-control" id="host" name="host" value="{{ host|default('') }}" required>
+                                <div class="form-text">
+                                    {% if secure_mode %}
+                                    Input is validated. Command injection will not work.
+                                    {% else %}
+                                    Try command injection with: <code>127.0.0.1; ls -la</code> or <code>127.0.0.1 && cat /etc/passwd</code>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Ping</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if output %}
+                <h4>Command Output:</h4>
+                <div class="output-container">{{ output }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h3>Code Comparison</h3>
+                <ul class="nav nav-tabs" id="codeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="vulnerable-tab" data-bs-toggle="tab" data-bs-target="#vulnerable" type="button" role="tab" aria-controls="vulnerable" aria-selected="true">Vulnerable Code</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="secure-tab" data-bs-toggle="tab" data-bs-target="#secure" type="button" role="tab" aria-controls="secure" aria-selected="false">Secure Code</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="codeTabsContent">
+                    <div class="tab-pane fade show active" id="vulnerable" role="tabpanel" aria-labelledby="vulnerable-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ vulnerable_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-danger">
+                            <h5>Vulnerability Explanation:</h5>
+                            <p>The vulnerable code directly inserts user input into a command string and executes it with <code>shell=True</code>. This allows attackers to append additional commands using shell operators like <code>;</code>, <code>&&</code>, or <code>||</code>.</p>
+                            <p>For example, entering <code>127.0.0.1; ls -la</code> will execute both the ping command and list directory contents.</p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="secure" role="tabpanel" aria-labelledby="secure-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ secure_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-success">
+                            <h5>Security Fix:</h5>
+                            <p>The secure code uses several security measures:</p>
+                            <ol>
+                                <li>Input validation to check if the hostname is valid</li>
+                                <li>Using a list of arguments instead of a string with <code>shell=True</code></li>
+                                <li>Avoiding the shell interpreter entirely, which prevents command chaining</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', function() {
+        Prism.highlightAll();
+    });
+</script>
+{% endblock %}

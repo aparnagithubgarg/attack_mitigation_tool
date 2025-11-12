@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - Attack Mitigation Tool{% endblock %}
+
+{% block extra_head %}
+<style>
+    .toc {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .toc ul {
+        list-style-type: none;
+        padding-left: 15px;
+    }
+    .toc > ul {
+        padding-left: 0;
+    }
+    .section {
+        margin-bottom: 30px;
+    }
+    .section h3 {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+    }
+    .code-block {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: monospace;
+        white-space: pre-wrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Documentation</h2>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h3>About the Attack Mitigation Tool</h3>
+                <p>
+                    The Attack Mitigation Tool is an educational project designed to demonstrate common web security
+                    vulnerabilities and their mitigations. This tool provides hands-on experience with various attack
+                    vectors and allows users to toggle between vulnerable and secure code implementations.
+                </p>
+                <p>
+                    <strong>Important Note:</strong> This tool is intended for educational purposes only. Do not use any
+                    techniques demonstrated here against systems without proper authorization.
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="toc">
+                    <h4>Table of Contents</h4>
+                    <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#attacks">Demonstrated Attacks</a>
+                            <ul>
+                                <li><a href="#xss">Cross-Site Scripting (XSS)</a></li>
+                                <li><a href="#sql-injection">SQL Injection</a></li>
+                                <li><a href="#command-injection">Command Injection</a></li>
+                                <li><a href="#directory-traversal">Directory Traversal</a></li>
+                                <li><a href="#clickjacking">Clickjacking</a></li>
+                                <li><a href="#mitm">Man-in-the-Middle (MITM)</a></li>
+                                <li><a href="#dos">Denial of Service (DoS)</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#usage">How to Use</a></li>
+                        <li><a href="#resources">Additional Resources</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div id="overview" class="section">
+                    <h3>Overview</h3>
+                    <p>
+                        The Attack Mitigation Tool provides a controlled environment for exploring and understanding
+                        web security vulnerabilities. Each attack demonstration includes:
+                    </p>
+                    <ul>
+                        <li>An explanation of the vulnerability</li>
+                        <li>A practical demonstration of the attack</li>
+                        <li>Code samples showing both vulnerable and secure implementations</li>
+                        <li>A toggle switch to switch between vulnerable and secure modes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div id="attacks" class="section">
+                    <h3>Demonstrated Attacks</h3>
+                    
+                    <div id="xss" class="subsection mb-4">
+                        <h4>Cross-Site Scripting (XSS)</h4>
+                        <p>
+                            Cross-Site Scripting (XSS) is a client-side code injection attack where attackers inject
+                            malicious scripts into web pages viewed by other users. When a user accesses the compromised
+                            page, their browser executes the injected script.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>Output Encoding/HTML Escaping: Convert special characters to their HTML entity equivalents</li>
+                            <li>Content Security Policy (CSP): Restrict execution of scripts to trusted sources</li>
+                            <li>Input Validation: Validate and sanitize user inputs before processing</li>
+                            <li>HttpOnly and Secure Cookie Flags: Protect cookies from being accessed via scripts</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="sql-injection" class="subsection mb-4">
+                        <h4>SQL Injection</h4>
+                        <p>
+                            SQL Injection is a code injection technique where attackers insert malicious SQL code into
+                            database queries, potentially allowing them to bypass authentication, access sensitive data,
+                            or modify database contents.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>Parameterized Queries (Prepared Statements): Keep SQL code and data separate</li>
+                            <li>ORM Frameworks: Use object-relational mapping to abstract SQL operations</li>
+                            <li>Input Validation: Validate user inputs for SQL injection patterns</li>
+                            <li>Principle of Least Privilege: Limit database user permissions</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="command-injection" class="subsection mb-4">
+                        <h4>Command Injection</h4>
+                        <p>
+                            Command Injection is an attack where attackers execute arbitrary system commands on the
+                            server by injecting malicious code into commands processed by the application.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>Input Validation: Validate and sanitize user inputs before using in commands</li>
+                            <li>Avoid Shell Execution: Use language functions instead of shell commands</li>
+                            <li>Use Safe APIs: Use list form of command execution instead of string form with shell=True</li>
+                            <li>Principle of Least Privilege: Run the application with minimal permissions</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="directory-traversal" class="subsection mb-4">
+                        <h4>Directory Traversal</h4>
+                        <p>
+                            Directory Traversal (Path Traversal) is an attack that allows attackers to access files and
+                            directories outside the intended directory by manipulating file paths with "../" sequences.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>Input Validation: Reject paths containing "../" or other traversal sequences</li>
+                            <li>Path Normalization: Use functions like os.path.normpath() to resolve traversal attempts</li>
+                            <li>Whitelist Approach: Only allow access to specific files or directories</li>
+                            <li>Use Secure File System APIs: Verify final path is within allowed boundaries</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="clickjacking" class="subsection mb-4">
+                        <h4>Clickjacking</h4>
+                        <p>
+                            Clickjacking (UI Redressing) is an attack where attackers trick users into clicking elements
+                            on a hidden page by overlaying it with a deceptive UI.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>X-Frame-Options Header: Prevent framing of the page (DENY, SAMEORIGIN)</li>
+                            <li>Content-Security-Policy: Use frame-ancestors directive to control framing</li>
+                            <li>Frame-busting JavaScript: Detect and break out of frames</li>
+                            <li>Require user confirmation for sensitive actions</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="mitm" class="subsection mb-4">
+                        <h4>Man-in-the-Middle (MITM)</h4>
+                        <p>
+                            A Man-in-the-Middle attack occurs when an attacker intercepts communications between two
+                            parties, potentially allowing them to eavesdrop on or modify the data being exchanged.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>HTTPS/TLS: Encrypt all communications to prevent eavesdropping</li>
+                            <li>HTTP Strict Transport Security (HSTS): Force browsers to use HTTPS</li>
+                            <li>Certificate Pinning: Verify server certificates against known good certificates</li>
+                            <li>Proper Certificate Validation: Verify SSL/TLS certificates properly</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="dos" class="subsection mb-4">
+                        <h4>Denial of Service (DoS)</h4>
+                        <p>
+                            A Denial of Service attack attempts to make a system unavailable by overwhelming it with
+                            requests or exploiting resource-intensive operations like complex regular expressions.
+                        </p>
+                        <h5>Primary Mitigation Techniques:</h5>
+                        <ul>
+                            <li>Rate Limiting: Limit the number of requests from a single client</li>
+                            <li>Resource Monitoring: Set timeouts and maximum execution times</li>
+                            <li>Input Validation: Detect and reject potentially dangerous inputs</li>
+                            <li>Scalable Infrastructure: Design systems to handle traffic spikes</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="usage" class="section">
+                    <h3>How to Use</h3>
+                    <ol>
+                        <li>Select an attack type from the navigation menu</li>
+                        <li>Read the explanation to understand the vulnerability</li>
+                        <li>Use the demo to see the attack in action</li>
+                        <li>Toggle between vulnerable and secure modes to see the difference</li>
+                        <li>Review the code comparisons to understand the mitigation techniques</li>
+                    </ol>
+                    <p>
+                        The security mode toggle affects all attack demos. When in "Secure Mode", the application
+                        implements proper security controls. When in "Vulnerable Mode", the application is intentionally
+                        left vulnerable for demonstration purposes.
+                    </p>
+                </div>
+                
+                <div id="resources" class="section">
+                    <h3>Additional Resources</h3>
+                    <p>To learn more about web security, check out these resources:</p>
+                    <ul>
+                        <li><a href="https://owasp.org/www-project-top-ten/" target="_blank">OWASP Top 10</a> - The most critical web application security risks</li>
+                        <li><a href="https://cheatsheetseries.owasp.org/" target="_blank">OWASP Cheat Sheet Series</a> - Security best practices</li>
+                        <li><a href="https://portswigger.net/web-security" target="_blank">PortSwigger Web Security Academy</a> - Free online training</li>
+                        <li><a href="https://www.hacksplaining.com/" target="_blank">Hacksplaining</a> - Interactive security lessons</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}SQL Injection Attack Demo - Attack Mitigation Tool{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.25.0/themes/prism.css">
+<style>
+    .code-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+    .result-container {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>SQL Injection Attack Demo</h2>
+    </div>
+    <div class="card-body">
+        <div class="alert {% if secure_mode %}alert-success{% else %}alert-danger{% endif %} mb-4">
+            <h4 class="alert-heading">Security Mode: {% if secure_mode %}Secure{% else %}Vulnerable{% endif %}</h4>
+            <p>
+                {% if secure_mode %}
+                SQL Injection Protection is <strong>enabled</strong>. Parameterized queries are being used.
+                {% else %}
+                SQL Injection Protection is <strong>disabled</strong>. The application is vulnerable to SQL injection attacks.
+                {% endif %}
+            </p>
+            <form method="post" action="{{ url_for('toggle_security') }}" class="mt-2">
+                <button type="submit" class="btn {% if secure_mode %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                    Switch to {% if secure_mode %}Vulnerable{% else %}Secure{% endif %} Mode
+                </button>
+            </form>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h3>What is SQL Injection?</h3>
+                <p>
+                    SQL Injection is a code injection technique that exploits vulnerabilities in the way 
+                    applications interact with databases. Attackers can insert malicious SQL code into database 
+                    queries, potentially allowing them to:
+                </p>
+                <ul>
+                    <li>Bypass authentication</li>
+                    <li>Access, modify, or delete data in the database</li>
+                    <li>Execute administrative operations on the database</li>
+                </ul>
+                <p>
+                    This demo shows how SQL injection can be used to extract data from a database when user input 
+                    is directly concatenated into SQL queries without proper sanitization.
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>User Search</h3>
+                <div class="card mb-4">
+                    <div class="card-header">Search for users</div>
+                    <div class="card-body">
+                        <form method="get" action="{{ url_for('sql_injection_demo') }}">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username:</label>
+                                <input type="text" class="form-control" id="username" name="username" value="{{ username }}" required>
+                                <div class="form-text">
+                                    {% if secure_mode %}
+                                    Input is properly sanitized. SQL injection will not work.
+                                    {% else %}
+                                    Try SQL injection with: <code>' OR '1'='1</code>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if users %}
+                <div class="result-container">
+                    <h4>Search Results</h4>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.role }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h3>Code Comparison</h3>
+                <ul class="nav nav-tabs" id="codeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="vulnerable-tab" data-bs-toggle="tab" data-bs-target="#vulnerable" type="button" role="tab" aria-controls="vulnerable" aria-selected="true">Vulnerable Code</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="secure-tab" data-bs-toggle="tab" data-bs-target="#secure" type="button" role="tab" aria-controls="secure" aria-selected="false">Secure Code</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="codeTabsContent">
+                    <div class="tab-pane fade show active" id="vulnerable" role="tabpanel" aria-labelledby="vulnerable-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ vulnerable_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-danger">
+                            <h5>Vulnerability Explanation:</h5>
+                            <p>The vulnerable code directly concatenates user input into the SQL query string. This allows attackers to modify the query's logic and structure, potentially accessing unauthorized data.</p>
+                            <p>For example, entering <code>' OR '1'='1</code> changes the WHERE clause to always evaluate to true, returning all records.</p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="secure" role="tabpanel" aria-labelledby="secure-tab">
+                        <div class="code-container">
+                            <pre><code class="language-python">{{ secure_code }}</code></pre>
+                        </div>
+                        <div class="alert alert-success">
+                            <h5>Security Fix:</h5>
+                            <p>The secure code uses parameterized queries where the SQL query structure and data are kept separate. The database engine treats input as literal values rather than executable SQL code.</p>
+                            <p>Even if users enter SQL code as input, it's treated as a string value and not part of the query structure.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', function() {
+        Prism.highlightAll();
+    });
+</script>
+{% endblock %}

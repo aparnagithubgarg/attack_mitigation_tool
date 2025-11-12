@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h1 class="text-center">Attack Mitigation Tool</h1>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">Welcome to the Attack Mitigation Tool!</h4>
+                    <p>This tool is designed for educational purposes to demonstrate common web security vulnerabilities and how to mitigate them.</p>
+                    <p>With this tool, you can:</p>
+                    <ul>
+                        <li>Explore different types of web security attacks</li>
+                        <li>Toggle between vulnerable and secure code implementations</li>
+                        <li>Learn about security best practices</li>
+                    </ul>
+                    <p class="mb-0"><strong>Note:</strong> This is for educational purposes only. Do not use any techniques demonstrated here against systems without proper authorization.</p>
+                </div>
+
+                <h2 class="mt-4">Available Attack Simulations</h2>
+                <div class="row row-cols-1 row-cols-md-2 g-4 mt-2">
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Cross-Site Scripting (XSS)</h5>
+                                <p class="card-text">Inject and execute malicious JavaScript in a victim's browser.</p>
+                                <a href="{{ url_for('xss_demo') }}" class="btn btn-primary">Try XSS Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">SQL Injection</h5>
+                                <p class="card-text">Manipulate SQL queries to extract or modify database contents.</p>
+                                <a href="{{ url_for('sql_injection_demo') }}" class="btn btn-primary">Try SQL Injection Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Command Injection</h5>
+                                <p class="card-text">Execute arbitrary OS commands through unsanitized inputs.</p>
+                                <a href="{{ url_for('command_injection_demo') }}" class="btn btn-primary">Try Command Injection Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Directory Traversal</h5>
+                                <p class="card-text">Access restricted server files by exploiting file path vulnerabilities.</p>
+                                <a href="{{ url_for('directory_traversal_demo') }}" class="btn btn-primary">Try Directory Traversal Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Clickjacking</h5>
+                                <p class="card-text">Trick users into interacting with hidden, malicious UI elements.</p>
+                                <a href="{{ url_for('clickjacking_demo') }}" class="btn btn-primary">Try Clickjacking Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Man-in-the-Middle (MITM)</h5>
+                                <p class="card-text">Intercept and manipulate user data between two endpoints.</p>
+                                <a href="{{ url_for('mitm_demo') }}" class="btn btn-primary">Try MITM Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Denial of Service (DoS)</h5>
+                                <p class="card-text">Overwhelm the system to disrupt normal functionality.</p>
+                                <a href="{{ url_for('dos_demo') }}" class="btn btn-primary">Try DoS Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <h2>How to Use This Tool</h2>
+                    <p>Each attack demo page includes:</p>
+                    <ul>
+                        <li>An explanation of the vulnerability</li>
+                        <li>A demonstration of the attack</li>
+                        <li>Code samples showing vulnerable and secure implementations</li>
+                        <li>A toggle switch to switch between vulnerable and secure modes</li>
+                    </ul>
+                    <p>Click the security mode toggle in the navigation bar to switch between vulnerable and secure modes across all demos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

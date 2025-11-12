@@ -1,0 +1,40 @@
+attack_mitigation_tool/
+├── app.py                      # Main Flask application
+├── config.py                   # Configuration settings
+├── db/
+│   ├── __init__.py
+│   ├── database.py             # Database setup and connection
+│   └── schema.sql              # SQL schema for the demonstration database
+├── static/
+│   ├── css/
+│   │   └── styles.css          # Custom CSS
+│   ├── js/
+│   │   ├── main.js             # Main JavaScript
+│   │   └── toggle.js           # Code toggle functionality
+│   └── img/                    # Images directory
+├── templates/
+│   ├── base.html               # Base template
+│   ├── index.html              # Main dashboard
+│   ├── attacks/                # Attack-specific templates
+│   │   ├── xss.html
+│   │   ├── sql_injection.html
+│   │   ├── command_injection.html
+│   │   ├── clickjacking.html
+│   │   ├── directory_traversal.html
+│   │   ├── mitm.html
+│   │   └── dos.html
+│   └── documentation.html      # Explanations and documentation
+├── attacks/
+│   ├── __init__.py
+│   ├── xss.py
+│   ├── sql_injection.py
+│   ├── command_injection.py
+│   ├── clickjacking.py
+│   ├── directory_traversal.py
+│   ├── mitm.py
+│   └── dos.py
+├── utils/
+│   ├── __init__.py
+│   └── helpers.py              # Helper functions
+├── README.md                   # Project documentation
+└── requirements.txt            # Python dependencies
